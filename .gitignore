@@ -7,3 +7,8 @@ test-results/
 playwright-report/
 *.log
 .data-test/
+.data-dev/
+tsconfig.tsbuildinfo
+next-env.d.ts
+dev.log
+.data-e2e/

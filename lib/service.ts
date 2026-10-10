@@ -167,7 +167,7 @@ export async function signPlan(wsId: string, planId: string, opts: { override?: 
       return;
     }
     if (plan.policy.verdict === "review" && !opts.override) throw new Error("This item needs review; confirm the override to sign it");
-    audit(ws, { actor: "seller", event: plan.policy.verdict === "review" ? "Countersigned (override)" : "Countersigned", detail: plan.policy.headline, planId });
+    audit(ws, { actor: "seller", event: plan.policy.verdict === "review" ? "Countersigned (override)" : "Countersigned", detail: plan.proposal.summary + (plan.policy.amount !== null ? ` - $${plan.policy.amount.toFixed(2)}` : ""), planId });
     await runExecution(ws, plan, paypal, "seller");
   });
 }

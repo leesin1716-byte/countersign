@@ -51,9 +51,9 @@ export function forgetWorkspace(id: string): void {
 }
 
 /** Small JSON counters for rate limiting, persisted next to workspaces. */
-export async function bumpCounter(name: string, limit: number): Promise<{ ok: boolean; count: number }> {
-  const day = new Date().toISOString().slice(0, 10);
-  const file = path.join(dataDir(), `counter-${name.replace(/[^a-zA-Z0-9._-]/g, "_")}-${day}.json`);
+export async function bumpCounter(name: string, limit: number, daily = true): Promise<{ ok: boolean; count: number }> {
+  const suffix = daily ? `-${new Date().toISOString().slice(0, 10)}` : "";
+  const file = path.join(dataDir(), `counter-${name.replace(/[^a-zA-Z0-9._-]/g, "_")}${suffix}.json`);
   return withWorkspaceLock(`counter:${file}`, async () => {
     let count = 0;
     try {
