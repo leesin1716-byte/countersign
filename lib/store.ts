@@ -31,7 +31,17 @@ export async function saveWorkspace(ws: Workspace): Promise<void> {
   const target = fileFor(ws.id);
   const tmp = `${target}.${process.pid}.${Date.now()}.tmp`;
   await fs.writeFile(tmp, JSON.stringify(ws));
-  await fs.rename(tmp, target);
+  // Windows can briefly lock a file that is being scanned or read; retry the atomic swap.
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await fs.rename(tmp, target);
+      return;
+    } catch (e) {
+      const code = (e as NodeJS.ErrnoException).code;
+      if (attempt >= 5 || (code !== "EPERM" && code !== "EBUSY" && code !== "EACCES")) throw e;
+      await new Promise((r) => setTimeout(r, 40 * (attempt + 1)));
+    }
+  }
 }
 
 /** Runs fn with exclusive access to one workspace (in-process). */
