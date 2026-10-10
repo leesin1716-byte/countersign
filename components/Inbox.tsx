@@ -86,7 +86,7 @@ export default function Inbox({ ws, busy, selectedPlanId, liveAi, onSelectPlan, 
               <button className="msg-hit" onClick={() => (plan ? onSelectPlan(plan.id) : onTriage(m.id))} disabled={!plan && !!busy}>
                 <div className="msg-top">
                   <span className="msg-from">{customerName(ws, m.customerKey)}</span>
-                  <span className="msg-time">{ago(m.receivedAt)}</span>
+                  <span className="msg-time">{ago(m.receivedAt, Math.max(Date.parse(ws.clock), Date.parse(m.receivedAt)))}</span>
                 </div>
                 <div className="msg-subject">
                   {m.attachment && <span className="clip" title="Photo attached" aria-label="Photo attached">▣</span>}

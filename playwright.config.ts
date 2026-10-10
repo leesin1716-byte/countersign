@@ -15,6 +15,6 @@ export default defineConfig({
     url: `http://localhost:${PORT}/api/workspace`,
     timeout: 300_000,
     reuseExistingServer: false,
-    env: { PAYPAL_MODE: "mock", AI_MODE: "mock", DATA_DIR: ".data-e2e" },
+    env: { PAYPAL_MODE: "mock", AI_MODE: "mock", AI_SEED_MODE: "rules", DATA_DIR: ".data-e2e" },
   },
 });

@@ -126,7 +126,11 @@ export function evaluate(
 
     case "reply_only": {
       check("No money moves", true, "Reply draft only");
-      const auto = ws.mandate.autoReplyOnly && !injection;
+      if (injection) {
+        check("No manipulation flags", false, `Agent flagged: ${proposal.riskFlags.join(", ")}`);
+        return result("review", null, "Possible manipulation - reply drafted, nothing moves");
+      }
+      const auto = ws.mandate.autoReplyOnly;
       return result(auto ? "auto" : "signature", null, "Reply drafted - no PayPal change");
     }
 

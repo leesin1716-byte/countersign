@@ -101,3 +101,35 @@ describe("agent loop", () => {
     expect(records.orders.map((o: { ref: string }) => o.ref)).toEqual(["HP-1042"]);
   });
 });
+
+describe("recorded seed runs", () => {
+  it("every cached proposal is valid and replays its lookups against the current PayPal objects", async () => {
+    const { analyze } = await import("../lib/agent");
+    const cache = (await import("../lib/agent/seed-cache.json")).default as Record<string, unknown>;
+    const { ws, paypal } = await setup();
+    const prev = process.env.AI_SEED_MODE;
+    process.env.AI_SEED_MODE = "cache";
+    try {
+      for (const key of Object.keys(cache)) {
+        const msg = ws.messages.find((m) => m.seedKey === key)!;
+        const run = await analyze(ws, msg, paypal, { allowLive: false });
+        expect(run.source).toBe("cached");
+        expect(run.trace.at(-1)?.tool).toBe("submit_proposal");
+        for (const step of run.trace.slice(0, -1)) expect(step.output).not.toMatch(/"error"/);
+        expect(JSON.stringify(run.proposal)).not.toMatch(/MOCK/);
+      }
+    } finally {
+      process.env.AI_SEED_MODE = prev;
+    }
+  });
+});
+
+describe("proposal validation", () => {
+  it("rejects a refund without an order or amount", async () => {
+    const { toProposal } = await import("../lib/agent/agent");
+    expect(() => toProposal({ ...proposal, order_ref: null })).toThrow(/order_ref/);
+    expect(() => toProposal({ ...proposal, refund_amount_usd: null })).toThrow(/refund_amount_usd/);
+    expect(() => toProposal({ ...proposal, action: "suspend_subscription", subscription_ref: null })).toThrow(/subscription_ref/);
+    expect(toProposal({ ...proposal, action: "reply_only", order_ref: null, refund_amount_usd: null }).action).toBe("reply_only");
+  });
+});

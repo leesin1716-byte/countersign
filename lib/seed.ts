@@ -2,6 +2,9 @@
 import type { CatalogItem, Customer, InboxMessage, OrderRecord, SubscriptionRecord, Workspace, Mandate } from "./types";
 import type { CardSource, PayPalPort } from "./paypal/port";
 
+/** Fixed demo clock: Monday 2 November 2026, 9:00 am Pacific. */
+export const DEMO_NOW = Date.parse("2026-11-02T17:00:00Z");
+
 export const STORE = { name: "Hollow Pine Ceramics", email: "studio@hollowpine.example" };
 
 export const DEFAULT_MANDATE: Mandate = {
@@ -170,10 +173,11 @@ function messages(now: number): InboxMessage[] {
 }
 
 /** Pure seed data (no PayPal calls). */
-export function seedData(id: string, paypalMode: "sandbox" | "mock", now = Date.now()): Workspace {
+export function seedData(id: string, paypalMode: "sandbox" | "mock", now = DEMO_NOW): Workspace {
   return {
     id,
-    createdAt: new Date(now).toISOString(),
+    createdAt: new Date().toISOString(),
+    clock: new Date(now).toISOString(),
     paypalMode,
     store: STORE,
     catalog: CATALOG,

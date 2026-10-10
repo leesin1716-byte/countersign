@@ -36,7 +36,9 @@ export async function analyze(
   paypal: PayPalPort,
   opts: { allowLive: boolean; llm?: LlmClient },
 ): Promise<AgentRun & { source: AiSource }> {
-  const cached = message.seedKey && process.env.AI_SEED_MODE !== "live" ? CACHE[message.seedKey] : undefined;
+  // AI_SEED_MODE: "cache" (default) replays recorded runs; "rules" uses the fallback (tests). Re-record with scripts/record-seed-cache.ts.
+  const seedMode = process.env.AI_SEED_MODE ?? "cache";
+  const cached = message.seedKey && seedMode === "cache" ? CACHE[message.seedKey] : undefined;
   if (cached) {
     // Replay the recorded tool calls against today's PayPal objects so the evidence is live.
     const trace = [];

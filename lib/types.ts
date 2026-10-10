@@ -191,6 +191,8 @@ export interface Mandate {
 export interface Workspace {
   id: string;
   createdAt: string;
+  /** The demo store's fixed "now". Seed dates, carrier scans and the agent's "today" all use it, so recorded runs stay consistent. */
+  clock: string;
   paypalMode: "sandbox" | "mock";
   store: { name: string; email: string };
   catalog: CatalogItem[];

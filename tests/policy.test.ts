@@ -4,7 +4,7 @@ import { evaluate, invoiceTotal } from "../lib/policy";
 import { seedData } from "../lib/seed";
 import type { OrderFacts, Proposal } from "../lib/types";
 
-const ws = seedData("t1", "mock", Date.parse("2026-10-10T12:00:00Z"));
+const ws = seedData("t1", "mock");
 const msg = (key: string) => ws.messages.find((m) => m.seedKey === key)!;
 const facts = (o: Partial<OrderFacts> = {}): { order: OrderFacts } => ({
   order: { orderId: "O1", status: "COMPLETED", customId: "t1:maya", captureId: "C1", captured: 48, refunded: 0, trackers: 1, ...o },
@@ -124,5 +124,6 @@ describe("subscriptions and replies", () => {
   it("lets reply-only items through and holds escalations", () => {
     expect(evaluate(ws, msg("where-vase"), { ...refund(), action: "reply_only" }, null, {}).verdict).toBe("auto");
     expect(evaluate(ws, msg("refund-now"), { ...refund(), action: "escalate" }, null, {}).verdict).toBe("review");
+    expect(evaluate(ws, msg("refund-now"), { ...refund(), action: "reply_only", riskFlags: ["prompt_injection"] }, null, {}).verdict).toBe("review");
   });
 });

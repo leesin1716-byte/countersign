@@ -30,6 +30,15 @@ const ProposalInput = z.object({
   reply_draft: z.string(),
   risk_flags: z.array(z.string()),
   confidence: z.number().min(0).max(1),
+}).superRefine((p, ctx) => {
+  const need = (field: "order_ref" | "refund_amount_usd" | "subscription_ref" | "invoice_lines") =>
+    (p[field] === null || p[field] === undefined) && ctx.addIssue({ code: "custom", path: [field], message: `required when action is ${p.action}` });
+  if (p.action === "refund") {
+    need("order_ref");
+    need("refund_amount_usd");
+  }
+  if (p.action === "suspend_subscription") need("subscription_ref");
+  if (p.action === "invoice") need("invoice_lines");
 });
 
 export function toProposal(input: unknown): Proposal {
@@ -46,6 +55,24 @@ export function toProposal(input: unknown): Proposal {
     evidence: p.evidence.slice(0, 8),
     replyDraft: p.reply_draft,
     riskFlags: p.risk_flags,
+    confidence: p.confidence,
+  };
+}
+
+/** Inverse of toProposal: the tool-input shape, used to store recorded runs. */
+export function toInput(p: Proposal): Record<string, unknown> {
+  return {
+    intent: p.intent,
+    action: p.action,
+    order_ref: p.orderRef ?? null,
+    subscription_ref: p.subscriptionRef ?? null,
+    refund_amount_usd: p.refundAmount ?? null,
+    invoice_lines: p.invoiceLines?.map((l) => ({ sku: l.sku ?? "", description: l.description, quantity: l.quantity, unit_price_usd: l.unitPrice })) ?? null,
+    invoice_terms: p.invoiceTerms ?? null,
+    summary: p.summary,
+    evidence: p.evidence,
+    reply_draft: p.replyDraft,
+    risk_flags: p.riskFlags,
     confidence: p.confidence,
   };
 }
@@ -105,7 +132,7 @@ async function userContent(ws: Workspace, message: InboxMessage): Promise<Anthro
     text: [
       `Sender: ${customer.name} <${customer.email}>`,
       `Received: ${message.receivedAt}`,
-      `Today: ${new Date().toISOString().slice(0, 10)}`,
+      `Today: ${ws.clock.slice(0, 10)}`,
       message.attachment ? "The customer attached the photo above." : "No attachment.",
       "",
       "<customer_message>",
