@@ -12,3 +12,5 @@ tsconfig.tsbuildinfo
 next-env.d.ts
 dev.log
 .data-e2e/
+.data-smoke/
+start.log

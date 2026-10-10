@@ -123,6 +123,15 @@ if (prod.json?.id) {
       application_context: { return_url: "https://example.com/ok", cancel_url: "https://example.com/cancel" },
     });
     brief("subscription create", sub, (j) => ({ id: j.id, status: j.status }));
+    const subCard = await pp("POST", "/v1/billing/subscriptions", {
+      plan_id: plan.json.id,
+      subscriber: {
+        name: { given_name: "Probe", surname: "Buyer" },
+        email_address: "probe-buyer@example.com",
+        payment_source: { card: { number: "4032039317984658", expiry: "2030-12", security_code: "123", name: "Probe Buyer", billing_address: { address_line_1: "1 Main St", admin_area_2: "San Jose", admin_area_1: "CA", postal_code: "95131", country_code: "US" } } },
+      },
+    });
+    brief("subscription create with card (needs card processing)", subCard, (j) => ({ id: j.id, status: j.status }));
     if (sub.json?.id) {
       const sus = await pp("POST", `/v1/billing/subscriptions/${sub.json.id}/suspend`, { reason: "Probe" });
       brief("subscription suspend (expected to need ACTIVE)", sus);
