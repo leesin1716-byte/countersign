@@ -108,8 +108,11 @@ Live calls are capped per visitor per day, for everyone per day, and in total (`
 npm test             # 34 unit and integration tests (policy, agent loop with a scripted model, full scenario on the PayPal simulator)
 npx playwright install chromium
 npm run test:e2e     # browser tests: triage, countersign, blocked over-refund, injection, compose, reset
+npm run test:e2e:sandbox  # the six scenario flows against the real PayPal sandbox (keys in .env.local; no Claude spend)
 npm run typecheck
 ```
+
+`npm run test:e2e:sandbox` creates real sandbox orders, then checks each flow end to end: refunds and the subscription pause under the mandate, the countersigned refund and invoice, the held injection attempt, PayPal IDs in the grid and audit log, and a reset that seeds new orders. With `SCREENSHOT=docs/screenshot.png` it also saves the image above.
 
 The integration tests cover the six scenario outcomes, countersigned refunds and invoices, a refund made elsewhere between drafting and signing, seller edits, idempotent retries and mandate changes.
 
