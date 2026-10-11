@@ -105,7 +105,7 @@ Live calls are capped per visitor per day, for everyone per day, and in total (`
 ## Tests
 
 ```bash
-npm test             # 34 unit and integration tests (policy, agent loop with a scripted model, full scenario on the PayPal simulator)
+npm test             # 35 unit and integration tests (policy, agent loop with a scripted model, full scenario on the PayPal simulator)
 npx playwright install chromium
 npm run test:e2e     # browser tests: triage, countersign, blocked over-refund, injection, compose, reset
 npm run test:e2e:sandbox  # the six scenario flows against the real PayPal sandbox (keys in .env.local; no Claude spend)

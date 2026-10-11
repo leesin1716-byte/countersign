@@ -66,7 +66,9 @@ export class SandboxPayPal implements PayPalPort {
     if (!res.ok) {
       const issue = json?.details?.[0]?.issue ?? json?.name;
       const desc = json?.details?.[0]?.description ?? json?.message ?? "PayPal request failed";
-      throw new PayPalError(`${method} ${path.split("?")[0]}: ${issue ?? res.status} - ${desc}`, res.status, issue, json?.debug_id);
+      // Keep debug_id in the text: sandbox 422s sometimes arrive without details, and PayPal support needs it.
+      const trace = json?.debug_id ? ` (debug_id ${json.debug_id})` : "";
+      throw new PayPalError(`${method} ${path.split("?")[0]}: ${issue ?? res.status} - ${desc}${trace}`, res.status, issue, json?.debug_id);
     }
     return json as T;
   }
