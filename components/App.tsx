@@ -1,6 +1,6 @@
 "use client";
 // 앱 셸: 워크스페이스를 불러오고 받은편지함·변경안 그리드·상세·감사 로그·위임 한도를 한 화면에 배치한다
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Mandate, Workspace } from "@/lib/types";
 import AuditLog from "./AuditLog";
 import Inbox from "./Inbox";
@@ -43,7 +43,11 @@ export default function App() {
     }
   }, []);
 
+  // Load once: a second cookie-less request (React dev double-effect) would seed a second workspace and race the cookie.
+  const loaded = useRef(false);
   useEffect(() => {
+    if (loaded.current) return;
+    loaded.current = true;
     void call("load", "/api/workspace");
   }, [call]);
 

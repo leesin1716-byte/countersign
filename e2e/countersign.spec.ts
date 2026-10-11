@@ -8,6 +8,16 @@ async function ready(page: Page) {
 
 const row = (page: Page, name: string) => page.getByTestId("plan-grid").locator('[role="row"]', { hasText: name });
 
+test("a first visit loads one workspace, so the cookie and the screen agree", async ({ page }) => {
+  const loads: string[] = [];
+  page.on("request", (r) => {
+    if (new URL(r.url()).pathname === "/api/workspace") loads.push(r.method());
+  });
+  await ready(page);
+  await page.waitForLoadState("networkidle");
+  expect(loads).toEqual(["GET"]);
+});
+
 test("seller triages the inbox and countersigns a refund", async ({ page }) => {
   await ready(page);
   await expect(page.getByTestId("grid-empty")).toBeVisible();
