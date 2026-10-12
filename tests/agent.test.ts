@@ -117,6 +117,7 @@ describe("recorded seed runs", () => {
         expect(run.trace.at(-1)?.tool).toBe("submit_proposal");
         for (const step of run.trace.slice(0, -1)) expect(step.output).not.toMatch(/"error"/);
         expect(JSON.stringify(run.proposal)).not.toMatch(/MOCK/);
+        expect(run.proposal.replyDraft).not.toContain("\\n");
       }
     } finally {
       process.env.AI_SEED_MODE = prev;

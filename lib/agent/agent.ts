@@ -53,7 +53,8 @@ export function toProposal(input: unknown): Proposal {
     invoiceTerms: p.invoice_terms ?? null,
     summary: p.summary.slice(0, 120),
     evidence: p.evidence.slice(0, 8),
-    replyDraft: p.reply_draft,
+    // The model sometimes double-escapes line breaks in tool input; show them as real line breaks.
+    replyDraft: p.reply_draft.replace(/\\n/g, "\n"),
     riskFlags: p.risk_flags,
     confidence: p.confidence,
   };
