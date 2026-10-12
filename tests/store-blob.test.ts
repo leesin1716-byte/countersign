@@ -12,7 +12,9 @@ vi.mock("@vercel/blob", () => {
     get: vi.fn(async (pathname: string) => {
       const b = blobs.get(pathname);
       if (!b) return null;
-      return { statusCode: 200, stream: new Response(b.text).body, headers: new Headers(), blob: { etag: b.etag } };
+      // The real store compresses bodies over ~1 KB (br) and then reports a weak ETag, W/"<same hash>", which put(ifMatch) rejects.
+      const etag = b.text.length > 1024 ? `W/${b.etag}` : b.etag;
+      return { statusCode: 200, stream: new Response(b.text).body, headers: new Headers(), blob: { etag } };
     }),
     put: vi.fn(async (pathname: string, body: string, opts: { allowOverwrite?: boolean; ifMatch?: string }) => {
       if (raceOnce) {
@@ -57,6 +59,16 @@ describe("store on Vercel Blob", () => {
     expect(loaded?.id).toBe(ws.id);
     expect(loaded?.messages.length).toBe(ws.messages.length);
     expect(await loadWorkspace("ffffffffffffffff")).toBeNull();
+  });
+
+  it("saves a loaded workspace whose read came back with a weak ETag, again and again", async () => {
+    await saveWorkspace(seedData("5555666677778888", "mock"));
+    for (const usd of [10, 20, 30]) {
+      const ws = (await loadWorkspace("5555666677778888"))!;
+      ws.mandate.autoRefundMaxUsd = usd;
+      await saveWorkspace(ws);
+    }
+    expect((await loadWorkspace("5555666677778888"))!.mandate.autoRefundMaxUsd).toBe(30);
   });
 
   it("refuses to overwrite a newer copy written by another instance", async () => {

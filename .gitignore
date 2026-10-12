@@ -15,3 +15,6 @@ dev.log
 .data-sandbox/
 .data-smoke/
 start.log
+
+.vercel
+.env*

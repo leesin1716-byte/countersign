@@ -26,7 +26,9 @@ const blobFor = (id: string) => `countersign/ws-${safeId(id)}.json`;
 async function readBlob(pathname: string): Promise<{ text: string; etag: string } | null> {
   const res = await get(pathname, { access: "private", useCache: false });
   if (!res || res.statusCode !== 200) return null;
-  return { text: await new Response(res.stream).text(), etag: res.blob.etag };
+  // Bodies over ~1 KB come back compressed with a weak ETag, W/"<hash>", for the same stored version.
+  // put(ifMatch) only accepts the strong form, so drop the W/ marker; a real newer write still has a different hash.
+  return { text: await new Response(res.stream).text(), etag: res.blob.etag.replace(/^W\//, "") };
 }
 
 async function writeBlob(pathname: string, text: string, ifMatch?: string): Promise<string> {
