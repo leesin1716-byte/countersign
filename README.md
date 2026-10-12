@@ -4,7 +4,7 @@
 
 Countersign reads a small shop's customer messages and turns each one into a single proposed PayPal change: a partial or full refund, an invoice, a subscription pause, or just a reply. Before anything executes, a deterministic policy engine re-reads the order or subscription in PayPal and checks the proposal against the seller's own rules. Small changes inside the seller's **mandate** run on their own. Everything else waits in a review grid until the seller **countersigns** it, and then it executes against the PayPal API with an idempotency key. Every step lands in an audit log.
 
-> Hosted demo: _added at deployment_ · Demo video: _added at submission_
+> Hosted demo: https://countersign-delta.vercel.app · Demo video: https://youtu.be/PkDmTqcNEUA
 > No login is needed. Each visitor gets a private demo store whose orders and subscription are created in the PayPal sandbox.
 
 ![Countersign: inbox, AG Grid review of proposed PayPal changes, policy checks and the audit log](docs/screenshot.png)
