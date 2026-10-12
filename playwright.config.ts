@@ -15,6 +15,7 @@ export default defineConfig({
     url: `http://localhost:${PORT}/api/workspace`,
     timeout: 300_000,
     reuseExistingServer: false,
-    env: { PAYPAL_MODE: "mock", AI_MODE: "mock", AI_SEED_MODE: "rules", DATA_DIR: ".data-e2e" },
+    // Every run creates new workspaces from localhost; lift the per-network daily cap so repeated runs don't get 429.
+    env: { PAYPAL_MODE: "mock", AI_MODE: "mock", AI_SEED_MODE: "rules", DATA_DIR: ".data-e2e", RESETS_PER_VISITOR_DAILY: "100000" },
   },
 });
