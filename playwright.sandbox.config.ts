@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 // Opt-in run against the real PayPal sandbox (keys from .env.local). Seed messages replay recorded Claude runs, so no AI spend.
+// Set E2E_BASE_URL to run the same flows against a deployed copy instead of a local dev server.
 const PORT = 3211;
+const remote = process.env.E2E_BASE_URL;
 
 export default defineConfig({
   testDir: "e2e-sandbox",
@@ -10,13 +12,15 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   reporter: [["list"]],
-  use: { baseURL: `http://localhost:${PORT}`, viewport: { width: 1440, height: 1000 }, trace: "off" },
+  use: { baseURL: remote ?? `http://localhost:${PORT}`, viewport: { width: 1440, height: 1000 }, trace: "off" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 1000 } } }],
-  webServer: {
-    command: `npx next dev -p ${PORT}`,
-    url: `http://localhost:${PORT}/`,
-    timeout: 300_000,
-    reuseExistingServer: false,
-    env: { PAYPAL_MODE: "sandbox", AI_SEED_MODE: "cache", DATA_DIR: ".data-sandbox", RESETS_PER_VISITOR_DAILY: "200" },
-  },
+  webServer: remote
+    ? undefined
+    : {
+        command: `npx next dev -p ${PORT}`,
+        url: `http://localhost:${PORT}/`,
+        timeout: 300_000,
+        reuseExistingServer: false,
+        env: { PAYPAL_MODE: "sandbox", AI_SEED_MODE: "cache", DATA_DIR: ".data-sandbox", RESETS_PER_VISITOR_DAILY: "200" },
+      },
 });

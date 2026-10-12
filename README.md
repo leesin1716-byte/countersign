@@ -105,7 +105,7 @@ Live calls are capped per visitor per day, for everyone per day, and in total (`
 ## Tests
 
 ```bash
-npm test             # 35 unit and integration tests (policy, agent loop with a scripted model, full scenario on the PayPal simulator)
+npm test             # 40 unit and integration tests (policy, agent loop with a scripted model, full scenario on the PayPal simulator, Blob store)
 npx playwright install chromium
 npm run test:e2e     # browser tests: triage, countersign, blocked over-refund, injection, compose, reset
 npm run test:e2e:sandbox  # the six scenario flows against the real PayPal sandbox (keys in .env.local; no Claude spend)
@@ -115,6 +115,17 @@ npm run typecheck
 `npm run test:e2e:sandbox` creates real sandbox orders, then checks each flow end to end: refunds and the subscription pause under the mandate, the countersigned refund and invoice, the held injection attempt, PayPal IDs in the grid and audit log, and a reset that seeds new orders. With `SCREENSHOT=docs/screenshot.png` it also saves the image above.
 
 The integration tests cover the six scenario outcomes, countersigned refunds and invoices, a refund made elsewhere between drafting and signing, seller edits, idempotent retries and mandate changes.
+
+## Deploy your own
+
+The hosted demo runs on Vercel. Serverless instances do not share memory or disk, so on Vercel the app keeps each visitor's demo store and the rate-limit counters in a **private Vercel Blob store** (reads bypass the CDN cache, writes are compare-and-swap on the ETag). Locally, with no Blob credentials, it uses JSON files in `./data`.
+
+1. Import the repository into Vercel (framework preset: Next.js, no build settings to change).
+2. In **Storage**, create a Blob store with **private** access and connect it to the project. That adds `BLOB_READ_WRITE_TOKEN`.
+3. Add the environment variables `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` and, for live Claude calls, `ANTHROPIC_API_KEY`. The optional `LIVE_AI_*` and `RESETS_PER_VISITOR_DAILY` caps are listed in `.env.example`.
+4. Deploy, then run the sandbox flows against it: `E2E_BASE_URL=https://<your-app>.vercel.app npm run test:e2e:sandbox`.
+
+Any long-running Node host also works with the file store (`npm run build && npm start`; set `DATA_DIR` to a writable folder).
 
 ## For judges
 
@@ -133,14 +144,14 @@ lib/paypal/          PayPal REST client (sandbox) and an in-memory simulator wit
 lib/policy.ts        Deterministic policy engine
 lib/executor.ts      Executes approved plans in PayPal and reads results back
 lib/service.ts       Orchestration, mandate, audit log
-lib/store.ts         Per-visitor workspaces as JSON files
+lib/store.ts         Per-visitor workspaces and rate-limit counters (private Vercel Blob when hosted, JSON files locally)
 tests/, e2e/         Vitest and Playwright suites
 scripts/             Sandbox probe, seed-run recorder, illustration generator
 ```
 
 ## Built with
 
-Next.js 16, React 19, TypeScript, AG Grid Community, the Anthropic TypeScript SDK (Claude Haiku 4.5), the PayPal REST APIs (Orders v2, Payments v2, Invoicing v2, Catalog Products, Billing Plans, Subscriptions v1), Zod, Vitest and Playwright.
+Next.js 16, React 19, TypeScript, AG Grid Community, the Anthropic TypeScript SDK (Claude Haiku 4.5), the PayPal REST APIs (Orders v2, Payments v2, Invoicing v2, Catalog Products, Billing Plans, Subscriptions v1), Zod, Vercel (hosting and Blob storage), Vitest and Playwright.
 
 ## License
 
